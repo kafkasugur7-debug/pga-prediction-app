@@ -4,4 +4,4 @@ services:
     env: python
     rootDir: pga_app
     buildCommand: pip install --upgrade pip && pip install --prefer-binary -r requirements.txt
-    startCommand: cd pga_app && gunicorn --bind 0.0.0.0:$PORT --workers 2 app:app
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 app:app
