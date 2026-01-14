@@ -3,5 +3,5 @@ services:
     name: pga-prediction-app
     env: python
     rootDir: pga_app
-    buildCommand: pip install --upgrade pip setuptools && pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip && pip install --prefer-binary -r requirements.txt
     startCommand: gunicorn app:app
