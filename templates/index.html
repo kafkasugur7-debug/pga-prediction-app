@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Makine öğrenmesi ile Ege Bölgesi deprem PGA (Peak Ground Acceleration) tahmini uygulaması">
+    <title>Deprem PGA Tahmin Sistemi - Ege Bölgesi</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="title-icon">🌍</span>
+                Deprem PGA Tahmin Sistemi
+            </h1>
+            <p class="hero-subtitle">Makine Öğrenmesi ile Ege Bölgesi Peak Ground Acceleration Tahmini</p>
+            <div class="hero-badges">
+                <span class="badge">3 ML Modeli</span>
+                <span class="badge">6 Tahmin</span>
+                <span class="badge">R² > 0.78</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Info Section -->
+        <section class="info-section">
+            <div class="info-grid">
+                <div class="info-card">
+                    <img src="{{ url_for('static', filename='images/aegean-map.png') }}" alt="Ege Bölgesi" class="info-image">
+                    <h3>Ege Bölgesi</h3>
+                    <p>Aktif tektonik zonlarla karakterize edilen bölge için özelleştirilmiş tahmin modelleri</p>
+                </div>
+                <div class="info-card">
+                    <img src="{{ url_for('static', filename='images/acceleration-wave.png') }}" alt="İvme Dalgası" class="info-image">
+                    <h3>PGA Analizi</h3>
+                    <p>Peak Ground Acceleration (PGA) maksimum ve ortalama değerlerin hassas tahmini</p>
+                </div>
+                <div class="info-card">
+                    <img src="{{ url_for('static', filename='images/earthquake-hero.png') }}" alt="ML Modelleri" class="info-image">
+                    <h3>ML Modelleri</h3>
+                    <p>Decision Tree, Gradient Boosting ve LightGBM modellerinin ensemble tahmini</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Input Section -->
+        <section class="input-section">
+            <div class="section-header">
+                <h2>📊 Deprem Parametreleri</h2>
+                <p>Aşağıdaki parametreleri girerek PGA tahminini başlatın</p>
+            </div>
+            
+            <form id="predictionForm" class="prediction-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="vs30">
+                            <span class="label-text">Vs30 (m/s)</span>
+                            <span class="label-info">30 metrede kesme dalgası hızı</span>
+                        </label>
+                        <input type="number" id="vs30" name="Vs30" step="0.1" min="0" required placeholder="Örn: 300">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="repi">
+                            <span class="label-text">Repi (km)</span>
+                            <span class="label-info">Episantır mesafesi</span>
+                        </label>
+                        <input type="number" id="repi" name="Repi" step="0.1" min="0" required placeholder="Örn: 50">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mw">
+                            <span class="label-text">Mw</span>
+                            <span class="label-info">Moment magnitüd (3.0 - 9.5)</span>
+                        </label>
+                        <input type="number" id="mw" name="Mw" step="0.1" min="3" max="9.5" required placeholder="Örn: 6.5">
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span class="btn-text">PGA Tahmini Yap</span>
+                    <span class="btn-icon">🔍</span>
+                </button>
+            </form>
+
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="resultsSection" class="results-section" style="display: none;">
+            <div class="section-header">
+                <h2>📈 Tahmin Sonuçları</h2>
+                <p>Üç farklı makine öğrenmesi modelinin PGA tahminleri</p>
+            </div>
+
+            <!-- Input Summary -->
+            <div class="input-summary">
+                <h3>Girdi Parametreleri</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <span class="summary-label">Vs30:</span>
+                        <span class="summary-value" id="summaryVs30">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Repi:</span>
+                        <span class="summary-value" id="summaryRepi">- </span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Mw:</span>
+                        <span class="summary-value" id="summaryMw">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PGA Max Results -->
+            <div class="result-card">
+                <h3 class="result-title">🔴 PGA Maksimum (Max PGA)</h3>
+                <div class="stats-grid">
+                    <div class="stat-card stat-mean">
+                        <div class="stat-label">Ortalama</div>
+                        <div class="stat-value" id="maxMean">-</div>
+                        <div class="stat-unit">gal</div>
+                    </div>
+                    <div class="stat-card stat-max">
+                        <div class="stat-label">En Yüksek</div>
+                        <div class="stat-value" id="maxMax">-</div>
+                        <div class="stat-unit">gal</div>
+                    </div>
+                    <div class="stat-card stat-min">
+                        <div class="stat-label">En Düşük</div>
+                        <div class="stat-value" id="maxMin">-</div>
+                        <div class="stat-unit">gal</div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="maxChart"></canvas>
+                </div>
+            </div>
+
+            <!-- PGA Average Results -->
+            <div class="result-card">
+                <h3 class="result-title">🟢 PGA Ortalama (Average PGA)</h3>
+                <div class="stats-grid">
+                    <div class="stat-card stat-mean">
+                        <div class="stat-label">Ortalama</div>
+                        <div class="stat-value" id="avgMean">-</div>
+                        <div class="stat-unit">gal</div>
+                    </div>
+                    <div class="stat-card stat-max">
+                        <div class="stat-label">En Yüksek</div>
+                        <div class="stat-value" id="avgMax">-</div>
+                        <div class="stat-unit">gal</div>
+                    </div>
+                    <div class="stat-card stat-min">
+                        <div class="stat-label">En Düşük</div>
+                        <div class="stat-value" id="avgMin">-</div>
+                        <div class="stat-unit">gal</div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="avgChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 Deprem PGA Tahmin Sistemi | Makine Öğrenmesi ile Geliştirildi</p>
+            <p class="footer-note">Bu uygulama bilimsel amaçlarla geliştirilmiştir. Ege Bölgesi deprem verileri kullanılarak eğitilmiş ML modelleri içerir.</p>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Tahmin yapılıyor...</p>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

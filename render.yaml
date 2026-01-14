@@ -2,5 +2,5 @@ services:
   - type: web
     name: pga-prediction-app
     env: python
-    buildCommand: pip install --upgrade pip && pip install --prefer-binary -r pga_app/requirements.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --chdir pga_app app:app
+    buildCommand: pip install --upgrade pip && pip install --prefer-binary -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 app:app
