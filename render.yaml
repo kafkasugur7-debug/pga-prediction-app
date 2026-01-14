@@ -1,10 +1,7 @@
 services:
   - type: web
     name: pga-prediction-app
-    runtime: python
+    env: python
     rootDir: pga_app
     buildCommand: pip install --upgrade pip setuptools && pip install -r requirements.txt
     startCommand: gunicorn app:app
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11
