@@ -2,6 +2,7 @@ services:
   - type: web
     name: pga-prediction-app
     runtime: python
+    rootDir: pga_app
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
